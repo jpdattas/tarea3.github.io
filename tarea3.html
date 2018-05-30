@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+       #map {
+        height: 400px;
+        width: 100%;
+       }
+    </style>
+  </head>
+  <body>
+    <h3>Tarea 3 J.P. Dattas</h3>
+    <div id="map"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script>
+      function initMap() {
+
+        var santiago = new google.maps.LatLng(-33.5, -70);
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: santiago,
+        });
+        // var marker = new google.maps.Marker({
+        //   position: santiago,
+        //   map: map,
+        //   icon: "plane.png"
+        // });
+        var socket = io('wss://integracion-tarea-3.herokuapp.com', {'path': '/flights'});
+        var flights = []
+
+        socket.on('AIRPORTS', function(msg){
+          console.log("quweoquweoiuweoiuo");
+          console.log(msg);
+        });
+
+        socket.on('POSITION', function(msg){
+          code = msg.code;
+          position = msg.position;
+          if (flights[code] == null) {
+            flights[code] = []
+            flights[code]["marker"] = new google.maps.Marker({
+              position: new google.maps.LatLng(position[0], position[1]),
+              icon: "plane.png",
+              map: map
+            });
+            flights[code]["flightPlanCoordinates"] = []
+            flights[code]["flightPath"] = new google.maps.Polyline({
+              path: flights[code]["flightPlanCoordinates"],
+              geodesic: true,
+              strokeColor: '#FFC300',
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+            });
+            flights[code]["flightPath"].setMap(map);
+          }
+          else{
+            flights[code]["flightPlanCoordinates"].push(flights[code]["marker"]["position"]);
+            flights[code]["flightPath"].setPath(flights[code]["flightPlanCoordinates"])
+            flights[code]["marker"].setPosition(new google.maps.LatLng(position[0], position[1]));
+          }
+
+        });
+      }
+
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBx-qnQy8GOH-ef5t2BO5BtLDpVhsH2YtM&callback=initMap">
+    </script>
+  </body>
+</html>
